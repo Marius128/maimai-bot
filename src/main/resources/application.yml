@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: maimai-bot
+
+onebot:
+  websocket-url: ${ONEBOT_WEBSOCKET_URL:ws://127.0.0.1:3001/}
+  access-token: ${ONEBOT_ACCESS_TOKEN:}
