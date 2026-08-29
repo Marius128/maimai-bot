@@ -20,6 +20,8 @@ target/
 .settings
 .springBeans
 .sts4-cache
+.idea/dataSources.xml
+.idea/uiDesigner.xml
 
 ### NetBeans ###
 /nbproject/private/
