@@ -1,10 +1,8 @@
 package per.kokabot.command;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.stereotype.Component;
-import per.kokabot.onebot.OneBotClient;
-
-import java.util.Map;
+import per.kokabot.command.context.CommandContext;
+import per.kokabot.onebot.OneBotMessageSender;
 
 /**
  * @BelongsProject: maimai-bot
@@ -17,10 +15,10 @@ import java.util.Map;
 @Component
 public class B50CommandHandler implements CommandHandler{
 
-    private final OneBotClient oneBotClient;
+    private final OneBotMessageSender messageSender;
 
-    public B50CommandHandler(OneBotClient oneBotClient) {
-        this.oneBotClient = oneBotClient;
+    public B50CommandHandler(OneBotMessageSender messageSender) {
+        this.messageSender = messageSender;
     }
 
     @Override
@@ -29,21 +27,15 @@ public class B50CommandHandler implements CommandHandler{
     }
 
     @Override
-    public void handle(JsonNode payload, String arguments) {
-        String messageType = payload.path("message_type").asText();
-        long userId = payload.path("user_id").asLong();
+    public void handle(CommandContext context) {
+        System.out.println("用户 QQ：" + context.userId());
+        System.out.println("用户昵称：" + context.nickname());
+        System.out.println("命令参数：" + context.arguments());
 
-        if ("private".equals(messageType)) {
-            oneBotClient.callAction(
-                    "send_private_msg",
-                    Map.of(
-                            "user_id", userId,
-                            "message", "B50 查询功能正在开发中"
-                    )
-            ).exceptionally(error -> {
-                System.out.println("消息发送失败：" + error.getMessage());
-                return null;
-            });
-        }
+        messageSender.reply(context, "B50 查询功能正在开发中")
+                .exceptionally(error -> {
+                    System.out.println("回复消息失败：" + error.getMessage());
+                    return null;
+                });
     }
 }

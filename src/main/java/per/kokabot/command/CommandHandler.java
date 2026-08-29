@@ -1,6 +1,6 @@
 package per.kokabot.command;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import per.kokabot.command.context.CommandContext;
 
 /**
  * @BelongsProject: maimai-bot
@@ -13,5 +13,5 @@ import com.fasterxml.jackson.databind.JsonNode;
 public interface CommandHandler {
     String command();
 
-    void handle(JsonNode payload, String arguments);
+    void handle(CommandContext context);
 }
