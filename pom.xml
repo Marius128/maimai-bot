@@ -11,7 +11,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.cykj</groupId>
+    <groupId>per.kokabot</groupId>
     <artifactId>maimai-bot</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>maimai-bot</name>
@@ -36,6 +36,23 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+            <version>3.0.5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
         </dependency>
     </dependencies>
 

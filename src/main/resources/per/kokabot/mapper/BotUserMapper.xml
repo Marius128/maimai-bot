@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="per.kokabot.mapper.BotUserMapper">
+    <insert id="upsertProvider">
+        insert into bot_user (qq_id, provider)
+        values (#{qqId}, #{provider})
+        on duplicate key update
+            provider = #{provider},
+            updated_at = CURRENT_TIMESTAMP
+    </insert>
+
+    <select id="selectByQqId" resultType="per.kokabot.entity.BotUserDO">
+        select *
+        from bot_user
+        where qq_id = #{qqId}
+    </select>
+</mapper>
