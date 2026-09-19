@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import per.kokabot.command.context.CommandContext;
 
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -61,12 +62,18 @@ public class OneBotMessageSender {
             Object message
     ) {
         if ("private".equals(context.messageType())) {
+            Map<String, Object> params = new HashMap<>();
+            params.put("user_id", context.userId());
+            params.put("message", message);
+
+            // 群临时会话必须携带来源群号，否则 QQ 会按陌生人私聊拒绝发送。
+            if (context.groupId() != null && context.groupId() > 0) {
+                params.put("group_id", context.groupId());
+            }
+
             return oneBotClient.callAction(
                     "send_private_msg",
-                    Map.of(
-                            "user_id", context.userId(),
-                            "message", message
-                    )
+                    params
             );
         }
 

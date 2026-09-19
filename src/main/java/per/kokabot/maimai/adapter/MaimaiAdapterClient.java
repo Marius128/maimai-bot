@@ -103,7 +103,11 @@ public class MaimaiAdapterClient {
                 if (message.isBlank()) {
                     message = "舞萌适配器请求失败";
                 }
-                throw new MaimaiAdapterException(response.statusCode(), message);
+                throw new MaimaiAdapterException(
+                        response.statusCode(),
+                        message,
+                        json.path("details").asText("")
+                );
             }
             return json;
         } catch (MaimaiAdapterException error) {

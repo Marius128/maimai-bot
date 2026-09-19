@@ -89,6 +89,18 @@ public class UpdateCommandHandler implements CommandHandler {
             if (adapterError.statusCode() == 0) {
                 return "舞萌适配器未启动，请联系管理员。";
             }
+            if (adapterError.details().contains("TitleServerBlockedError")) {
+                return "当前网络被舞萌机台服务器拒绝访问，请联系管理员检查网络或配置 HTTP 代理。";
+            }
+            if (adapterError.details().contains("TitleServerNetworkError")) {
+                return "暂时无法连接舞萌机台服务器，请稍后再试。";
+            }
+            if (adapterError.details().contains("ArcadeIdentifierError")
+                    || adapterError.details().contains(
+                    "InvalidPlayerIdentifierError"
+            )) {
+                return "保存的舞萌玩家标识无效，请重新私聊发送 /bind mai。";
+            }
             return "读取舞萌成绩失败，二维码绑定可能已失效，请重新私聊发送 /bind mai。";
         }
         return "成绩更新失败，请稍后重试。";

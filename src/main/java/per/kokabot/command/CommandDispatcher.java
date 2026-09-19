@@ -130,9 +130,7 @@ public class CommandDispatcher {
             return;
         }
 
-        Long groupId = "group".equals(messageType)
-                ? payload.path("group_id").asLong()
-                : null;
+        Long groupId = resolveGroupId(payload, messageType);
 
         CommandContext context = new CommandContext(
                 payload.path("user_id").asLong(),
@@ -145,5 +143,25 @@ public class CommandDispatcher {
         );
 
         handler.handle(context);
+    }
+
+    private Long resolveGroupId(JsonNode payload, String messageType) {
+        if ("group".equals(messageType)) {
+            long groupId = payload.path("group_id").asLong();
+            return groupId > 0 ? groupId : null;
+        }
+
+        if (!"private".equals(messageType)) {
+            return null;
+        }
+
+        // SnowLuma 将群临时会话的来源群号放在 sender.group_id。
+        // 同时兼容部分 OneBot 实现使用顶层 group_id 的情况。
+        long groupId = payload.path("sender").path("group_id").asLong();
+        if (groupId <= 0) {
+            groupId = payload.path("group_id").asLong();
+        }
+
+        return groupId > 0 ? groupId : null;
     }
 }
