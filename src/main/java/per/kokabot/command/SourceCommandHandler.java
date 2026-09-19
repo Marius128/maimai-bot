@@ -53,7 +53,7 @@ public class SourceCommandHandler implements CommandHandler{
 
             reply(context, "数据源已切换为：" + providerType.displayName());
         } catch (IllegalArgumentException error) {
-            reply(context, "不支持的数据源，请使用：/source water 或 /source lxns");
+            reply(context, "不支持的数据源，请使用：/source fish 或 /source lxns");
         } catch (Exception error) {
             log.error("切换用户数据源失败", error);
             reply(context, "切换数据源失败，请稍后重试");
@@ -71,7 +71,7 @@ public class SourceCommandHandler implements CommandHandler{
 
     private MaimaiProviderType parseProvider(String input) {
         return switch (input) {
-            case "water", "divingfish", "水鱼" ->
+            case "fish", "water", "divingfish", "水鱼" ->
                     MaimaiProviderType.DIVING_FISH;
 
             case "lxns", "落雪" ->

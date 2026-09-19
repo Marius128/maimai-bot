@@ -8,6 +8,7 @@ spring:
     password: ${DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+
 mybatis:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
@@ -16,3 +17,18 @@ mybatis:
 onebot:
   websocket-url: ${ONEBOT_WEBSOCKET_URL:ws://127.0.0.1:3001/}
   access-token: ${ONEBOT_ACCESS_TOKEN:}
+
+maimai:
+  provider:
+    diving-fish:
+      base-url: ${DIVING_FISH_BASE_URL:https://www.diving-fish.com/api/maimaidxprober}
+    lxns:
+      base-url: ${LXNS_BASE_URL:https://maimai.lxns.net/api/v0}
+      api-key: ${LXNS_API_KEY:}
+  assets:
+    root-directory: ${MAIMAI_ASSET_DIR:./data/maimai}
+    catalog-refresh-hours: ${MAIMAI_CATALOG_REFRESH_HOURS:24}
+    jacket-base-url: ${MAIMAI_JACKET_BASE_URL:https://www.diving-fish.com/covers}
+    fallback-jacket-base-url: ${MAIMAI_FALLBACK_JACKET_BASE_URL:https://meta.salt.realtvop.top/covers}
+server:
+  port: 8081

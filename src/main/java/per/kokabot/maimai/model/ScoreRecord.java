@@ -13,7 +13,11 @@ public record  ScoreRecord(String songId,
                            String chartType,
                            String difficulty,
                            String level,
+                           double chartConstant,
                            double achievement,
                            int dxScore,
-                           int rating) {
+                           int rating,
+                           int dxStar,
+                           String fullCombo,
+                           String fullSync) {
 }

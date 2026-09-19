@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.stereotype.Component;
 import per.kokabot.command.context.CommandContext;
 
+import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -27,6 +29,36 @@ public class OneBotMessageSender {
     public CompletableFuture<JsonNode> reply(
             CommandContext context,
             String message
+    ) {
+        return send(context, message);
+    }
+
+    public CompletableFuture<JsonNode> replyImage(
+            CommandContext context,
+            byte[] pngData
+    ) {
+        if (pngData == null || pngData.length == 0) {
+            return CompletableFuture.failedFuture(
+                    new IllegalArgumentException("图片数据不能为空")
+            );
+        }
+
+        String base64 = Base64.getEncoder().encodeToString(pngData);
+        List<Map<String, Object>> message = List.of(
+                Map.of(
+                        "type", "image",
+                        "data", Map.of(
+                                "file", "base64://" + base64
+                        )
+                )
+        );
+
+        return send(context, message);
+    }
+
+    private CompletableFuture<JsonNode> send(
+            CommandContext context,
+            Object message
     ) {
         if ("private".equals(context.messageType())) {
             return oneBotClient.callAction(

@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="1500"
+     height="2720"
+     viewBox="0 0 1500 2720">
+    <defs>
+        <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#091326"/>
+            <stop offset="48%" stop-color="#151a36"/>
+            <stop offset="100%" stop-color="#301c46"/>
+        </linearGradient>
+        <linearGradient id="rating" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#73ddff" stop-opacity="0.78"/>
+            <stop offset="45%" stop-color="#7968ff" stop-opacity="0.86"/>
+            <stop offset="100%" stop-color="#f177ff" stop-opacity="0.76"/>
+        </linearGradient>
+        <linearGradient id="emptyCover" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#33466d"/>
+            <stop offset="55%" stop-color="#242745"/>
+            <stop offset="100%" stop-color="#5b3767"/>
+        </linearGradient>
+        <linearGradient id="coverShade" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#050714" stop-opacity="0.04"/>
+            <stop offset="36%" stop-color="#050714" stop-opacity="0.18"/>
+            <stop offset="100%" stop-color="#050714" stop-opacity="0.62"/>
+        </linearGradient>
+        <linearGradient id="glassPanel" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.30"/>
+            <stop offset="35%" stop-color="#c9d9ff" stop-opacity="0.18"/>
+            <stop offset="72%" stop-color="#1c2038" stop-opacity="0.70"/>
+            <stop offset="100%" stop-color="#100f25" stop-opacity="0.82"/>
+        </linearGradient>
+        <linearGradient id="chipBlue" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#70d8ff"/>
+            <stop offset="100%" stop-color="#319bd9"/>
+        </linearGradient>
+        <linearGradient id="chipPurple" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#9d84ff"/>
+            <stop offset="100%" stop-color="#6246cf"/>
+        </linearGradient>
+        <linearGradient id="chipRed" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#ec3d48"/>
+            <stop offset="100%" stop-color="#b31023"/>
+        </linearGradient>
+        <linearGradient id="chipOrange" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#ff9831"/>
+            <stop offset="100%" stop-color="#f25b08"/>
+        </linearGradient>
+        <linearGradient id="chipGlass" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.72"/>
+            <stop offset="48%" stop-color="#d9d4e8" stop-opacity="0.61"/>
+            <stop offset="100%" stop-color="#8e89a2" stop-opacity="0.74"/>
+        </linearGradient>
+        <filter id="chipShadow" x="-20%" y="-40%" width="140%" height="190%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur"/>
+            <feOffset in="blur" dx="0" dy="3" result="offsetBlur"/>
+            <feFlood flood-color="#080918" flood-opacity="0.58" result="shadowColor"/>
+            <feComposite in="shadowColor" in2="offsetBlur" operator="in" result="shadow"/>
+            <feMerge>
+                <feMergeNode in="shadow"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+        <filter id="iconShadow" x="-35%" y="-35%" width="170%" height="180%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur"/>
+            <feOffset in="blur" dx="0" dy="2" result="offsetBlur"/>
+            <feFlood flood-color="#070817" flood-opacity="0.72" result="shadowColor"/>
+            <feComposite in="shadowColor" in2="offsetBlur" operator="in" result="shadow"/>
+            <feMerge>
+                <feMergeNode in="shadow"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+        <pattern id="stripes" width="90" height="90"
+                 patternUnits="userSpaceOnUse"
+                 patternTransform="rotate(18)">
+            <rect width="34" height="90" fill="#ffffff" opacity="0.025"/>
+        </pattern>
+        <style>
+            text {
+                font-family: "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+            }
+            .title { fill: #ffffff; font-size: 42px; font-weight: 700; }
+            .subtitle { fill: #c4cfee; font-size: 24px; }
+            .rating { fill: #ffffff; font-size: 34px; font-weight: 700; }
+            .section { fill: #ebeefa; font-size: 28px; font-weight: 700; }
+            .card-rank {
+                fill: #ffffff;
+                font-size: 14px;
+                font-weight: 700;
+                text-anchor: middle;
+            }
+            .card-title { fill: #ffffff; font-size: 16px; font-weight: 700; }
+            .song-id {
+                fill: #e5eaff;
+                fill-opacity: 0.78;
+                font-size: 11px;
+                text-anchor: end;
+            }
+            .achievement { fill: #ffffff; font-size: 29px; font-weight: 700; }
+            .info-chip {
+                fill: #ffffff;
+                font-size: 11px;
+                font-weight: 700;
+                text-anchor: middle;
+                paint-order: stroke;
+                stroke: #000000;
+                stroke-opacity: 0.12;
+                stroke-width: 0.8px;
+            }
+            .star-empty {
+                fill: #ffffff;
+                fill-opacity: 0.58;
+                font-size: 10px;
+                font-weight: 700;
+                text-anchor: middle;
+            }
+            .empty {
+                fill: #c9d5f3;
+                font-size: 17px;
+                font-weight: 700;
+                text-anchor: middle;
+            }
+            .cover-placeholder {
+                fill: #d8e4ff;
+                fill-opacity: 0.72;
+                font-size: 36px;
+                font-weight: 700;
+                text-anchor: middle;
+            }
+            .footer { fill: #9aa4c0; font-size: 14px; }
+        </style>
+    </defs>
+
+    <rect width="1500" height="2720" fill="url(#background)"/>
+    <rect width="1500" height="2720" fill="url(#stripes)"/>
+    <circle cx="160" cy="260" r="360" fill="#2bd4ff" opacity="0.09"/>
+    <circle cx="1320" cy="560" r="520" fill="#bd57ff" opacity="0.10"/>
+    <circle cx="350" cy="1550" r="520" fill="#626dff" opacity="0.08"/>
+    <circle cx="1320" cy="2400" r="470" fill="#ff62c7" opacity="0.08"/>
+
+    <text class="title" x="38" y="62">{{PLAYER_NAME}}</text>
+    <text class="subtitle" x="40" y="101">maimai DX · Best 50</text>
+
+    <g>
+        <rect x="1090" y="39" width="370" height="62" rx="31"
+              fill="#050713" opacity="0.38"/>
+        <rect x="1090" y="35" width="370" height="62" rx="31"
+              fill="url(#rating)" stroke="#ffffff" stroke-opacity="0.42"/>
+        <path d="M 1124 42 H 1426" stroke="#ffffff"
+              stroke-opacity="0.46" stroke-linecap="round"/>
+        <text class="rating" x="1275" y="77" text-anchor="middle">
+            DX RATING  {{RATING}}
+        </text>
+    </g>
+
+    <text class="section" x="38" y="165">B35 · 旧版本谱面</text>
+    <text class="section" x="32" y="1915">B15 · 当前版本谱面</text>
+
+    <g id="best-35">{{B35_CARDS}}</g>
+    <g id="best-15">{{B15_CARDS}}</g>
+
+    <text class="footer" x="32" y="2680">
+        Generated by KokaBot · Data provided by selected prober
+    </text>
+</svg>
