@@ -11,7 +11,6 @@ spring:
 
 mybatis:
   configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
     map-underscore-to-camel-case: true
 
 onebot:
@@ -19,16 +18,29 @@ onebot:
   access-token: ${ONEBOT_ACCESS_TOKEN:}
 
 maimai:
+  adapter:
+    base-url: ${MAIMAI_ADAPTER_BASE_URL:http://127.0.0.1:8082}
   provider:
     diving-fish:
       base-url: ${DIVING_FISH_BASE_URL:https://www.diving-fish.com/api/maimaidxprober}
     lxns:
       base-url: ${LXNS_BASE_URL:https://maimai.lxns.net/api/v0}
       api-key: ${LXNS_API_KEY:}
+      oauth:
+        client-id: ${LXNS_OAUTH_CLIENT_ID:}
+        client-secret: ${LXNS_OAUTH_CLIENT_SECRET:}
+        authorize-url: ${LXNS_OAUTH_AUTHORIZE_URL:https://maimai.lxns.net/oauth/authorize}
+        token-url: ${LXNS_OAUTH_TOKEN_URL:https://maimai.lxns.net/api/v0/oauth/token}
+        userinfo-url: ${LXNS_OAUTH_USERINFO_URL:https://maimai.lxns.net/api/v0/oauth/userinfo}
+        redirect-uri: ${LXNS_OAUTH_REDIRECT_URI:urn:ietf:wg:oauth:2.0:oob}
+        scopes: read_player write_player openid profile
   assets:
     root-directory: ${MAIMAI_ASSET_DIR:./data/maimai}
     catalog-refresh-hours: ${MAIMAI_CATALOG_REFRESH_HOURS:24}
     jacket-base-url: ${MAIMAI_JACKET_BASE_URL:https://www.diving-fish.com/covers}
     fallback-jacket-base-url: ${MAIMAI_FALLBACK_JACKET_BASE_URL:https://meta.salt.realtvop.top/covers}
+
+security:
+  token-encryption-key: ${TOKEN_ENCRYPTION_KEY:}
 server:
   port: 8081

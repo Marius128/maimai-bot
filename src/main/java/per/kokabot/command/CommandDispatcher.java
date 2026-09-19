@@ -1,6 +1,8 @@
 package per.kokabot.command;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import per.kokabot.command.context.CommandContext;
@@ -20,6 +22,9 @@ import java.util.Map;
  */
 @Component
 public class CommandDispatcher {
+
+    private static final Logger log =
+            LoggerFactory.getLogger(CommandDispatcher.class);
 
     private final Map<String, CommandHandler> handlers = new HashMap<>();
 
@@ -96,8 +101,6 @@ public class CommandDispatcher {
         //忽略at消息段，只提取文字
         String rawMessage = extractText(payload).trim();
 
-        System.out.println("收到的消息：" + rawMessage);
-
         if (!rawMessage.startsWith("/")) {
             return;
         }
@@ -113,13 +116,17 @@ public class CommandDispatcher {
         String commandName = parts[0];
         String arguments = parts.length == 2 ? parts[1] : "";
 
-        System.out.println("命令名称：" + commandName);
-        System.out.println("命令参数：" + arguments);
+        log.debug(
+                "收到命令: command={}, userId={}, messageType={}",
+                commandName,
+                payload.path("user_id").asLong(),
+                messageType
+        );
 
         CommandHandler handler = handlers.get(commandName);
 
         if (handler == null) {
-            System.out.println("位置命令 " + commandName);
+            log.debug("未知命令: {}", commandName);
             return;
         }
 

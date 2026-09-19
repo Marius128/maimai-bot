@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="per.kokabot.mapper.MaimaiAccountBindingMapper">
+    <select id="selectByQqId" resultType="per.kokabot.entity.MaimaiAccountBindingDO">
+        select qq_id,
+               arcade_credential_encrypted,
+               created_at,
+               updated_at
+        from maimai_account_binding
+        where qq_id = #{qqId}
+    </select>
+
+    <insert id="upsert" parameterType="per.kokabot.entity.MaimaiAccountBindingDO">
+        insert into maimai_account_binding (
+            qq_id,
+            arcade_credential_encrypted
+        ) values (
+            #{qqId},
+            #{arcadeCredentialEncrypted}
+        )
+        on duplicate key update
+            arcade_credential_encrypted = values(arcade_credential_encrypted),
+            updated_at = current_timestamp
+    </insert>
+
+    <delete id="deleteByQqId">
+        delete from maimai_account_binding
+        where qq_id = #{qqId}
+    </delete>
+</mapper>

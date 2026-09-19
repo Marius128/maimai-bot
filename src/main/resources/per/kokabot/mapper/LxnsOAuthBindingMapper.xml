@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="per.kokabot.mapper.LxnsOAuthBindingMapper">
+    <select id="selectByQqId" resultType="per.kokabot.entity.LxnsOAuthBindingDO">
+        select qq_id,
+               subject,
+               username,
+               access_token_encrypted,
+               refresh_token_encrypted,
+               access_token_expires_at,
+               refresh_token_expires_at,
+               scope,
+               created_at,
+               updated_at
+        from lxns_oauth_binding
+        where qq_id = #{qqId}
+    </select>
+
+    <insert id="upsert" parameterType="per.kokabot.entity.LxnsOAuthBindingDO">
+        insert into lxns_oauth_binding (
+            qq_id,
+            subject,
+            username,
+            access_token_encrypted,
+            refresh_token_encrypted,
+            access_token_expires_at,
+            refresh_token_expires_at,
+            scope
+        ) values (
+            #{qqId},
+            #{subject},
+            #{username},
+            #{accessTokenEncrypted},
+            #{refreshTokenEncrypted},
+            #{accessTokenExpiresAt},
+            #{refreshTokenExpiresAt},
+            #{scope}
+        )
+        on duplicate key update
+            subject = values(subject),
+            username = values(username),
+            access_token_encrypted = values(access_token_encrypted),
+            refresh_token_encrypted = values(refresh_token_encrypted),
+            access_token_expires_at = values(access_token_expires_at),
+            refresh_token_expires_at = values(refresh_token_expires_at),
+            scope = values(scope),
+            updated_at = current_timestamp
+    </insert>
+
+    <delete id="deleteByQqId">
+        delete from lxns_oauth_binding
+        where qq_id = #{qqId}
+    </delete>
+</mapper>
