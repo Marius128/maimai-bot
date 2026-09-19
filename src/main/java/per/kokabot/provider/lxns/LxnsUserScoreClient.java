@@ -21,6 +21,12 @@ import java.util.List;
 public class LxnsUserScoreClient {
 
     private static final Duration TIMEOUT = Duration.ofSeconds(30);
+    private static final List<String> FC_VALUES = List.of(
+            "app", "ap", "fcp", "fc"
+    );
+    private static final List<String> FS_VALUES = List.of(
+            "sync", "fs", "fsp", "fsd", "fsdp"
+    );
 
     private final ObjectMapper objectMapper;
     private final HttpClient httpClient;
@@ -58,7 +64,9 @@ public class LxnsUserScoreClient {
             return;
         }
         ArrayNode values = objectMapper.createArrayNode();
-        scores.forEach(values::add);
+        scores.stream()
+                .map(score -> toUploadScore(objectMapper, score))
+                .forEach(values::add);
         ObjectNode body = objectMapper.createObjectNode();
         body.set("scores", values);
 
@@ -67,6 +75,44 @@ public class LxnsUserScoreClient {
                 .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
                 .build();
         send(request);
+    }
+
+    static ObjectNode toUploadScore(
+            ObjectMapper objectMapper,
+            JsonNode score
+    ) {
+        ObjectNode upload = objectMapper.createObjectNode();
+        upload.put("id", score.path("id").asInt());
+        upload.put("type", score.path("type").asText().toLowerCase());
+        upload.put("level_index", score.path("level_index").asInt());
+        upload.put("achievements", score.path("achievements").asDouble());
+        putBadge(upload, "fc", score.get("fc"), FC_VALUES);
+        putBadge(upload, "fs", score.get("fs"), FS_VALUES);
+        upload.put("dx_score", score.path("dx_score").asInt());
+        upload.putNull("play_time");
+        return upload;
+    }
+
+    private static void putBadge(
+            ObjectNode target,
+            String field,
+            JsonNode value,
+            List<String> enumValues
+    ) {
+        if (value == null || value.isNull()) {
+            target.putNull(field);
+            return;
+        }
+
+        if (value.isIntegralNumber()) {
+            int index = value.asInt();
+            if (index >= 0 && index < enumValues.size()) {
+                target.put(field, enumValues.get(index));
+                return;
+            }
+        }
+
+        target.put(field, value.asText().toLowerCase());
     }
 
     private HttpRequest.Builder request(String accessToken) {

@@ -79,7 +79,8 @@ public class UpdateCommandHandler implements CommandHandler {
         }
         if (error instanceof LxnsApiException apiError) {
             return switch (apiError.statusCode()) {
-                case 400, 401 -> "落雪授权已失效，请重新私聊发送 /bind lxns。";
+                case 400 -> "成绩数据与落雪接口不兼容，请联系管理员更新机器人。";
+                case 401 -> "落雪授权已失效，请重新私聊发送 /bind lxns。";
                 case 403 -> "落雪授权缺少写入玩家成绩的权限，请重新绑定。";
                 case 429 -> "落雪请求过于频繁，请稍后再试。";
                 default -> "落雪暂时无法接收成绩，请稍后再试。";
