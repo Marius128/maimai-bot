@@ -64,6 +64,7 @@ services:
         hard: 1048576
     environment:
       TZ: Asia/Shanghai
+      VNC_PASSWD: ${VNC_PASSWD:-}
       SNOWLUMA_WEBUI_HOST: 0.0.0.0
       SNOWLUMA_WEBUI_PORT: 5099
       SNOWLUMA_HOOK_AUTOLOAD: "1"

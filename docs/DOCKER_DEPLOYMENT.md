@@ -71,6 +71,12 @@ openssl rand -hex 32
 
 把结果写入 `.env` 的 `ONEBOT_ACCESS_TOKEN`。
 
+同时为 noVNC 远程桌面设置一个独立的强密码：
+
+```text
+VNC_PASSWD=请替换为新的强密码
+```
+
 使用编辑器打开 `.env`：
 
 ```bash
