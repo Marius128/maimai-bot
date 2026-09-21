@@ -79,7 +79,9 @@ KokaBot 会根据用户通过 `/source` 选择的平台执行 B50 查询和成�
 - Maven
 - Docker Compose
 
-## 本地运行
+## Windows 本地运行
+
+本节只适用于开发电脑上的 Windows 本地环境。Linux 云服务器请直接阅读后面的“Docker 云服务器部署”，不需要安装 Windows 版适配器。
 
 ### 环境要求
 
@@ -87,7 +89,7 @@ KokaBot 会根据用户通过 `/source` 选择的平台执行 B50 查询和成�
 - Maven 3.6 或更高版本；
 - MySQL 8；
 - SnowLuma；
-- Windows amd64 版 maimai.py 适配器。
+- Windows x64 电脑和 Windows amd64 版 maimai.py 适配器。
 
 ### 1. 建立数据库
 
@@ -154,6 +156,8 @@ java -jar target/maimai-bot-0.0.1-SNAPSHOT.jar
 ```
 
 ## Docker 云服务器部署
+
+本节适用于 Linux x86_64 云服务器。Docker 构建时会自动下载 `maimai.py-linux-amd64`，不会使用前面 Windows 本地运行所需的 `.exe` 文件。
 
 仓库已提供：
 
