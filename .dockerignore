@@ -1,0 +1,9 @@
+.git
+.idea
+.m2-cache
+.runtime
+.tmp
+data
+target
+.env
+*.iml

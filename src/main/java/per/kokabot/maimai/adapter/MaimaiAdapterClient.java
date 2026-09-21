@@ -3,6 +3,7 @@ package per.kokabot.maimai.adapter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.NullNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -58,6 +59,33 @@ public class MaimaiAdapterClient {
 
     public List<JsonNode> arcadeScores(String credential) {
         return scores("/arcade/scores", credential);
+    }
+
+    public List<JsonNode> divingFishScores(String importToken) {
+        return scores("/divingfish/scores", importToken);
+    }
+
+    public void uploadDivingFishScores(
+            String importToken,
+            List<JsonNode> scores
+    ) {
+        if (scores.isEmpty()) {
+            return;
+        }
+        ArrayNode body = objectMapper.createArrayNode();
+        scores.forEach(body::add);
+        HttpRequest request = HttpRequest.newBuilder(
+                        URI.create(credentialUrl(
+                                "/divingfish/scores",
+                                importToken
+                        ))
+                )
+                .timeout(REQUEST_TIMEOUT)
+                .header("Accept", "application/json")
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
+                .build();
+        send(request);
     }
 
     private List<JsonNode> scores(String path, String credential) {

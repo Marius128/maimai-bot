@@ -1,0 +1,62 @@
+package per.kokabot.service.impl;
+
+import org.springframework.stereotype.Service;
+import per.kokabot.arcade.ArcadeVenue;
+import per.kokabot.entity.ArcadeOccupancyReportDO;
+import per.kokabot.mapper.ArcadeOccupancyReportMapper;
+import per.kokabot.service.ArcadeOccupancyService;
+
+import java.sql.Timestamp;
+import java.time.Instant;
+
+@Service
+public class ArcadeOccupancyServiceImpl implements ArcadeOccupancyService {
+
+    private final ArcadeOccupancyReportMapper reportMapper;
+
+    public ArcadeOccupancyServiceImpl(
+            ArcadeOccupancyReportMapper reportMapper
+    ) {
+        this.reportMapper = reportMapper;
+    }
+
+    @Override
+    public void report(
+            long groupId,
+            ArcadeVenue venue,
+            int playerCount,
+            long reporterUserId,
+            Instant reportedAt
+    ) {
+        if (groupId <= 0 || reporterUserId <= 0) {
+            throw new IllegalArgumentException("群号和汇报用户不能为空");
+        }
+        if (playerCount < 0 || playerCount > 99) {
+            throw new IllegalArgumentException("机厅人数必须在 0 到 99 之间");
+        }
+
+        ArcadeOccupancyReportDO report = new ArcadeOccupancyReportDO();
+        report.setGroupId(groupId);
+        report.setVenue(venue);
+        report.setPlayerCount(playerCount);
+        report.setReporterUserId(reporterUserId);
+        report.setReportedAt(Timestamp.from(
+                reportedAt == null ? Instant.now() : reportedAt
+        ));
+        reportMapper.upsert(report);
+    }
+
+    @Override
+    public OccupancyReport find(long groupId, ArcadeVenue venue) {
+        ArcadeOccupancyReportDO report = reportMapper.select(groupId, venue);
+        if (report == null) {
+            return null;
+        }
+        return new OccupancyReport(
+                report.getVenue(),
+                report.getPlayerCount(),
+                report.getReporterUserId(),
+                report.getReportedAt().toInstant()
+        );
+    }
+}

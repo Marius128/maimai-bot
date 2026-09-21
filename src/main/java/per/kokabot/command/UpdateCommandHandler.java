@@ -9,6 +9,7 @@ import per.kokabot.onebot.OneBotMessageSender;
 import per.kokabot.provider.lxns.LxnsApiException;
 import per.kokabot.provider.lxns.oauth.LxnsOAuthException;
 import per.kokabot.service.MaimaiQuickSyncService;
+import per.kokabot.service.MaimaiSyncTargetException;
 
 import java.util.concurrent.CompletionException;
 
@@ -36,18 +37,23 @@ public class UpdateCommandHandler implements CommandHandler {
 
     @Override
     public void handle(CommandContext context) {
-        messageSender.reply(context, "正在读取机台成绩并同步到落雪……")
+        if (!context.arguments().isBlank()) {
+            messageSender.reply(context, "用法：/update")
+                    .exceptionally(error -> null);
+            return;
+        }
+        messageSender.reply(context, "正在读取机台成绩并同步到当前数据源……")
                 .thenCompose(ignored -> syncService.sync(context.userId()))
                 .handle((result, error) -> {
                     if (error == null) {
-                        if (result.changed() == 0) {
-                            return "更新完成：共读取 " + result.fetched()
-                                    + " 条成绩，没有发现新纪录。";
-                        }
                         return "更新完成：共读取 " + result.fetched()
-                                + " 条成绩，向落雪写入 " + result.changed()
-                                + " 条新纪录。\n"
-                                + "快捷更新不包含 FC、FC+、AP、AP+ 和同步标志。";
+                                + " 条成绩，向"
+                                + result.provider().displayName()
+                                + "写入 " + result.changed()
+                                + " 条新纪录。"
+                                + "\n"
+                                + "机台成绩不包含 FC、FC+、AP、AP+ "
+                                + "和同步标志。";
                     }
                     Throwable cause = unwrap(error);
                     log.warn(
@@ -64,7 +70,36 @@ public class UpdateCommandHandler implements CommandHandler {
                 });
     }
 
+    private String friendlyTargetError(String name, Throwable error) {
+        if ("落雪".equals(name)) {
+            return friendlyError(error);
+        }
+        if (error instanceof MaimaiAdapterException adapterError) {
+            if (adapterError.statusCode() == 0) {
+                return "舞萌适配器未启动，请联系管理员。";
+            }
+            if (adapterError.statusCode() == 400
+                    || adapterError.statusCode() == 401
+                    || adapterError.statusCode() == 403) {
+                return "Import-Token 已失效，请重新私聊发送 /bind fish。";
+            }
+            return "水鱼暂时无法接收成绩，请稍后再试。";
+        }
+        if (error instanceof IllegalStateException
+                || error instanceof IllegalArgumentException) {
+            return error.getMessage();
+        }
+        return "水鱼暂时无法接收成绩，请稍后再试。";
+    }
+
     private String friendlyError(Throwable error) {
+        if (error instanceof MaimaiSyncTargetException targetError) {
+            return targetError.provider().displayName() + "同步失败，"
+                    + friendlyTargetError(
+                            targetError.provider().displayName(),
+                            targetError.getCause()
+                    );
+        }
         if (error instanceof IllegalStateException
                 || error instanceof IllegalArgumentException) {
             return error.getMessage();

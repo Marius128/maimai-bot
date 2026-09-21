@@ -1,0 +1,116 @@
+name: kokabot
+
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: maimai_bot
+      MYSQL_USER: ${DB_USERNAME:-maimai}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - mysqladmin ping -h 127.0.0.1 -uroot -p"$${MYSQL_ROOT_PASSWORD}" --silent
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  db-init:
+    image: mysql:8.0
+    restart: "no"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      MYSQL_DATABASE: maimai_bot
+      DB_USERNAME: ${DB_USERNAME:-maimai}
+      MYSQL_PWD: ${DB_PASSWORD}
+    volumes:
+      - ./database:/migrations:ro
+      - ./docker/mysql-init.sh:/usr/local/bin/mysql-init.sh:ro
+    entrypoint: ["/bin/sh", "/usr/local/bin/mysql-init.sh"]
+
+  maimai-adapter:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: docker/maimai-adapter.Dockerfile
+      args:
+        MAIMAI_ADAPTER_VERSION: v1.5.2rc2
+    restart: unless-stopped
+    expose:
+      - "8082"
+
+  snowluma:
+    image: ${SNOWLUMA_IMAGE:-motricseven7/snowluma:latest}
+    restart: unless-stopped
+    shm_size: 1gb
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp=unconfined
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 1048576
+    environment:
+      TZ: Asia/Shanghai
+      SNOWLUMA_WEBUI_HOST: 0.0.0.0
+      SNOWLUMA_WEBUI_PORT: 5099
+      SNOWLUMA_HOOK_AUTOLOAD: "1"
+      SNOWLUMA_QQ_FLAGS: >-
+        --disable-gpu --disable-software-rasterizer
+        --disable-gpu-compositing
+    ports:
+      - "127.0.0.1:6081:6081"
+      - "127.0.0.1:5099:5099"
+    volumes:
+      - snowluma-data:/app/data
+      - qq-client-config:/app/.config
+      - qq-client-data:/app/.local/share
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+      maimai-adapter:
+        condition: service_healthy
+      snowluma:
+        condition: service_started
+    environment:
+      TZ: Asia/Shanghai
+      DB_URL: >-
+        jdbc:mysql://mysql:3306/maimai_bot?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+      DB_USERNAME: ${DB_USERNAME:-maimai}
+      DB_PASSWORD: ${DB_PASSWORD}
+      ONEBOT_WEBSOCKET_URL: ws://snowluma:3001/
+      ONEBOT_ACCESS_TOKEN: ${ONEBOT_ACCESS_TOKEN}
+      MAIMAI_ADAPTER_BASE_URL: http://maimai-adapter:8082
+      MAIMAI_ASSET_DIR: /app/data/maimai
+      LXNS_API_KEY: ${LXNS_API_KEY}
+      LXNS_OAUTH_CLIENT_ID: ${LXNS_OAUTH_CLIENT_ID}
+      LXNS_OAUTH_CLIENT_SECRET: ${LXNS_OAUTH_CLIENT_SECRET}
+      LXNS_OAUTH_REDIRECT_URI: ${LXNS_OAUTH_REDIRECT_URI:-urn:ietf:wg:oauth:2.0:oob}
+      TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY}
+    volumes:
+      - maimai-assets:/app/data/maimai
+
+volumes:
+  mysql-data:
+  maimai-assets:
+  snowluma-data:
+  qq-client-config:
+  qq-client-data:

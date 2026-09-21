@@ -57,6 +57,51 @@ public class OneBotMessageSender {
         return send(context, message);
     }
 
+    public CompletableFuture<JsonNode> sendGroupText(
+            long groupId,
+            String message
+    ) {
+        return oneBotClient.callAction(
+                "send_group_msg",
+                Map.of(
+                        "group_id", groupId,
+                        "message", message
+                )
+        );
+    }
+
+    public CompletableFuture<JsonNode> sendGroupWithMention(
+            long groupId,
+            String prefix,
+            long mentionedUserId,
+            String suffix
+    ) {
+        List<Map<String, Object>> message = List.of(
+                Map.of(
+                        "type", "text",
+                        "data", Map.of("text", prefix)
+                ),
+                Map.of(
+                        "type", "at",
+                        "data", Map.of(
+                                "qq",
+                                String.valueOf(mentionedUserId)
+                        )
+                ),
+                Map.of(
+                        "type", "text",
+                        "data", Map.of("text", suffix)
+                )
+        );
+        return oneBotClient.callAction(
+                "send_group_msg",
+                Map.of(
+                        "group_id", groupId,
+                        "message", message
+                )
+        );
+    }
+
     private CompletableFuture<JsonNode> send(
             CommandContext context,
             Object message

@@ -181,15 +181,11 @@ public class B50ImageRenderer {
                 .append("\" height=\"").append(CARD_HEIGHT)
                 .append("\" rx=\"24\" fill=\"url(#coverShade)\"/>")
                 .append("<rect x=\"").append(x + 6)
-                .append("\" y=\"").append(y + 98)
+                .append("\" y=\"").append(y + 108)
                 .append("\" width=\"").append(width - 12)
-                .append("\" height=\"116\" rx=\"26\"")
+                .append("\" height=\"106\" rx=\"24\"")
                 .append(" fill=\"url(#glassPanel)\"")
                 .append(" stroke=\"#ffffff\" stroke-opacity=\"0.32\"/>")
-                .append("<path d=\"M ").append(x + 22).append(" ")
-                .append(y + 100).append(" H ").append(x + width - 22)
-                .append("\" stroke=\"#ffffff\" stroke-opacity=\"0.40\"")
-                .append(" stroke-linecap=\"round\"/>")
                 .append("<rect x=\"").append(x + 9)
                 .append("\" y=\"").append(y + 8)
                 .append("\" width=\"42\" height=\"23\" rx=\"11.5\"")
@@ -200,16 +196,20 @@ public class B50ImageRenderer {
                 .append("<rect x=\"").append(x + 16)
                 .append("\" y=\"").append(y + 185)
                 .append("\" width=\"40\" height=\"24\" fill=\"")
-                .append(chartTypeFill(score.chartType())).append("\"/>")
+                .append(chartTypeFill(score.chartType()))
+                .append("\" fill-opacity=\"0.90\"/>")
                 .append("<rect x=\"").append(x + 56)
                 .append("\" y=\"").append(y + 185)
-                .append("\" width=\"40\" height=\"24\" fill=\"url(#chipRed)\"/>")
+                .append("\" width=\"40\" height=\"24\"")
+                .append(" fill=\"url(#chipRed)\" fill-opacity=\"0.90\"/>")
                 .append("<rect x=\"").append(x + 96)
                 .append("\" y=\"").append(y + 185)
-                .append("\" width=\"40\" height=\"24\" fill=\"url(#chipOrange)\"/>")
+                .append("\" width=\"40\" height=\"24\"")
+                .append(" fill=\"url(#chipOrange)\" fill-opacity=\"0.90\"/>")
                 .append("<rect x=\"").append(x + 136)
                 .append("\" y=\"").append(y + 185)
-                .append("\" width=\"58\" height=\"24\" fill=\"url(#chipGlass)\"/>")
+                .append("\" width=\"58\" height=\"24\"")
+                .append(" fill=\"url(#chipGlass)\" fill-opacity=\"0.90\"/>")
                 .append("<rect x=\"").append(x + 16)
                 .append("\" y=\"").append(y + 185)
                 .append("\" width=\"178\" height=\"24\" rx=\"12\"")
@@ -220,7 +220,7 @@ public class B50ImageRenderer {
         int titleUnits = 23;
         String title = truncate(safeText(score.songName()), titleUnits);
         appendText(card, "card-rank", x + 30, y + 25, "#" + rank);
-        appendText(card, "card-title", contentX, y + 132, title);
+        appendText(card, "card-title", contentX, y + 131, title);
         appendText(
                 card,
                 "song-id",
@@ -232,7 +232,7 @@ public class B50ImageRenderer {
                 card,
                 "achievement",
                 contentX,
-                y + 174,
+                y + 177,
                 String.format(Locale.ROOT, "%.4f%%", score.achievement())
         );
         appendText(card, "info-chip", x + 36, y + 201,
@@ -313,11 +313,10 @@ public class B50ImageRenderer {
 
     private String playBonusAsset(String code) {
         if (code == null || code.isBlank()) {
-            return badgeDataUris.get("bonus-blank");
+            return null;
         }
-        return badgeDataUris.getOrDefault(
-                "bonus-" + code.toLowerCase(Locale.ROOT),
-                badgeDataUris.get("bonus-blank")
+        return badgeDataUris.get(
+                "bonus-" + code.toLowerCase(Locale.ROOT)
         );
     }
 
@@ -328,6 +327,9 @@ public class B50ImageRenderer {
             int size,
             String dataUri
     ) {
+        if (dataUri == null || dataUri.isBlank()) {
+            return;
+        }
         target.append("<image x=\"").append(x)
                 .append("\" y=\"").append(y)
                 .append("\" width=\"").append(size)

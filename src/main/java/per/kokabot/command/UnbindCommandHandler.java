@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import per.kokabot.command.context.CommandContext;
 import per.kokabot.onebot.OneBotMessageSender;
 import per.kokabot.service.LxnsOAuthBindingService;
+import per.kokabot.service.DivingFishBindingService;
 import per.kokabot.service.MaimaiAccountBindingService;
 
 import java.util.Locale;
@@ -17,15 +18,18 @@ public class UnbindCommandHandler implements CommandHandler {
             LoggerFactory.getLogger(UnbindCommandHandler.class);
 
     private final LxnsOAuthBindingService lxnsBindingService;
+    private final DivingFishBindingService divingFishBindingService;
     private final MaimaiAccountBindingService maimaiBindingService;
     private final OneBotMessageSender messageSender;
 
     public UnbindCommandHandler(
             LxnsOAuthBindingService lxnsBindingService,
+            DivingFishBindingService divingFishBindingService,
             MaimaiAccountBindingService maimaiBindingService,
             OneBotMessageSender messageSender
     ) {
         this.lxnsBindingService = lxnsBindingService;
+        this.divingFishBindingService = divingFishBindingService;
         this.maimaiBindingService = maimaiBindingService;
         this.messageSender = messageSender;
     }
@@ -40,9 +44,11 @@ public class UnbindCommandHandler implements CommandHandler {
         String target = context.arguments().trim().toLowerCase(Locale.ROOT);
         if (!"lxns".equals(target)
                 && !"落雪".equals(target)
+                && !"fish".equals(target)
+                && !"水鱼".equals(target)
                 && !"mai".equals(target)
                 && !"舞萌".equals(target)) {
-            reply(context, "用法：/unbind lxns 或 /unbind mai");
+            reply(context, "用法：/unbind lxns、/unbind fish 或 /unbind mai");
             return;
         }
         if (!"private".equals(context.messageType())) {
@@ -57,6 +63,17 @@ public class UnbindCommandHandler implements CommandHandler {
                         context,
                         removed ? "已删除本机器人保存的舞萌玩家标识。"
                                 : "你还没有绑定舞萌账号。"
+                );
+                return;
+            }
+            if ("fish".equals(target) || "水鱼".equals(target)) {
+                boolean removed = divingFishBindingService.unbind(
+                        context.userId()
+                );
+                reply(
+                        context,
+                        removed ? "已删除本机器人保存的水鱼 Import-Token。"
+                                : "你还没有绑定水鱼。"
                 );
                 return;
             }

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="per.kokabot.mapper.DivingFishBindingMapper">
+    <select id="selectByQqId" resultType="per.kokabot.entity.DivingFishBindingDO">
+        select qq_id,
+               import_token_encrypted,
+               created_at,
+               updated_at
+        from diving_fish_binding
+        where qq_id = #{qqId}
+    </select>
+
+    <insert id="upsert" parameterType="per.kokabot.entity.DivingFishBindingDO">
+        insert into diving_fish_binding (
+            qq_id,
+            import_token_encrypted
+        ) values (
+            #{qqId},
+            #{importTokenEncrypted}
+        )
+        on duplicate key update
+            import_token_encrypted = values(import_token_encrypted),
+            updated_at = current_timestamp
+    </insert>
+
+    <delete id="deleteByQqId">
+        delete from diving_fish_binding
+        where qq_id = #{qqId}
+    </delete>
+</mapper>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="per.kokabot.mapper.ArcadeOccupancyReportMapper">
+    <select id="select" resultType="per.kokabot.entity.ArcadeOccupancyReportDO">
+        select group_id,
+               venue,
+               player_count,
+               reporter_user_id,
+               reported_at,
+               created_at,
+               updated_at
+        from arcade_occupancy_report
+        where group_id = #{groupId}
+          and venue = #{venue}
+    </select>
+
+    <insert id="upsert" parameterType="per.kokabot.entity.ArcadeOccupancyReportDO">
+        insert into arcade_occupancy_report (
+            group_id,
+            venue,
+            player_count,
+            reporter_user_id,
+            reported_at
+        ) values (
+            #{groupId},
+            #{venue},
+            #{playerCount},
+            #{reporterUserId},
+            #{reportedAt}
+        )
+        on duplicate key update
+            player_count = values(player_count),
+            reporter_user_id = values(reporter_user_id),
+            reported_at = values(reported_at),
+            updated_at = current_timestamp
+    </insert>
+</mapper>

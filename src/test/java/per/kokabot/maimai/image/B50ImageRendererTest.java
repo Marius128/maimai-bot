@@ -75,8 +75,12 @@ class B50ImageRendererTest {
                         2800 + index,
                         300 - index,
                         index % 6,
-                        index % 4 == 0 ? "app" : "fc",
-                        index % 3 == 0 ? "fsdp" : "fs"
+                        index % 5 == 0
+                                ? null
+                                : index % 4 == 0 ? "app" : "fc",
+                        index % 5 == 0
+                                ? null
+                                : index % 3 == 0 ? "fsdp" : "fs"
                 ))
                 .toList();
     }

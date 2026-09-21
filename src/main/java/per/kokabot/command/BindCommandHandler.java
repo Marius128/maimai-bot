@@ -8,6 +8,7 @@ import per.kokabot.onebot.OneBotMessageSender;
 import per.kokabot.maimai.adapter.MaimaiAdapterException;
 import per.kokabot.provider.lxns.oauth.LxnsOAuthException;
 import per.kokabot.service.LxnsOAuthBindingService;
+import per.kokabot.service.DivingFishBindingService;
 import per.kokabot.service.MaimaiAccountBindingService;
 
 import java.util.Locale;
@@ -20,15 +21,18 @@ public class BindCommandHandler implements CommandHandler {
             LoggerFactory.getLogger(BindCommandHandler.class);
 
     private final LxnsOAuthBindingService lxnsBindingService;
+    private final DivingFishBindingService divingFishBindingService;
     private final MaimaiAccountBindingService maimaiBindingService;
     private final OneBotMessageSender messageSender;
 
     public BindCommandHandler(
             LxnsOAuthBindingService lxnsBindingService,
+            DivingFishBindingService divingFishBindingService,
             MaimaiAccountBindingService maimaiBindingService,
             OneBotMessageSender messageSender
     ) {
         this.lxnsBindingService = lxnsBindingService;
+        this.divingFishBindingService = divingFishBindingService;
         this.maimaiBindingService = maimaiBindingService;
         this.messageSender = messageSender;
     }
@@ -42,7 +46,7 @@ public class BindCommandHandler implements CommandHandler {
     public void handle(CommandContext context) {
         String input = context.arguments().trim();
         if (input.isBlank()) {
-            reply(context, "用法：/bind lxns [授权码] 或 /bind mai [二维码内容]");
+            reply(context, "用法：/bind lxns、/bind fish 或 /bind mai");
             return;
         }
 
@@ -50,9 +54,11 @@ public class BindCommandHandler implements CommandHandler {
         String target = parts[0].toLowerCase(Locale.ROOT);
         if (!"lxns".equals(target)
                 && !"落雪".equals(target)
+                && !"fish".equals(target)
+                && !"水鱼".equals(target)
                 && !"mai".equals(target)
                 && !"舞萌".equals(target)) {
-            reply(context, "当前支持：/bind lxns 或 /bind mai");
+            reply(context, "当前支持：/bind lxns、/bind fish 或 /bind mai");
             return;
         }
 
@@ -63,6 +69,10 @@ public class BindCommandHandler implements CommandHandler {
 
         if ("mai".equals(target) || "舞萌".equals(target)) {
             handleMaimaiBinding(context, parts);
+            return;
+        }
+        if ("fish".equals(target) || "水鱼".equals(target)) {
+            handleDivingFishBinding(context, parts);
             return;
         }
 
@@ -78,6 +88,68 @@ public class BindCommandHandler implements CommandHandler {
         }
 
         completeAuthorization(context, parts[1]);
+    }
+
+    private void handleDivingFishBinding(
+            CommandContext context,
+            String[] parts
+    ) {
+        if (parts.length == 2
+                && "status".equals(parts[1].trim().toLowerCase(Locale.ROOT))) {
+            reply(
+                    context,
+                    divingFishBindingService.isBound(context.userId())
+                            ? "水鱼 Import-Token 已绑定，可以使用快捷更新。"
+                            : "尚未绑定水鱼，请执行 /bind fish。"
+            );
+            return;
+        }
+        if (parts.length == 1 || parts[1].isBlank()) {
+            reply(
+                    context,
+                    "请登录水鱼查分器，在个人资料页生成并复制 Import-Token，"
+                            + "然后私聊发送：\n/bind fish Import-Token\n"
+                            + "Import-Token 属于敏感凭证，请勿在群聊发送。"
+            );
+            return;
+        }
+
+        messageSender.reply(context, "正在验证水鱼 Import-Token，请稍候……")
+                .exceptionally(error -> null);
+        divingFishBindingService.bind(context.userId(), parts[1])
+                .thenCompose(ignored -> messageSender.reply(
+                        context,
+                        "水鱼绑定成功，Import-Token 已加密保存。"
+                ))
+                .exceptionally(error -> {
+                    Throwable cause = unwrap(error);
+                    log.warn(
+                            "绑定水鱼失败: userId={}, error={}",
+                            context.userId(),
+                            cause.toString()
+                    );
+                    reply(context, friendlyDivingFishMessage(cause));
+                    return null;
+                });
+    }
+
+    private String friendlyDivingFishMessage(Throwable error) {
+        if (error instanceof MaimaiAdapterException adapterError) {
+            if (adapterError.statusCode() == 0) {
+                return "舞萌数据适配器尚未启动，请联系管理员。";
+            }
+            if (adapterError.statusCode() == 400
+                    || adapterError.statusCode() == 401
+                    || adapterError.statusCode() == 403) {
+                return "水鱼 Import-Token 无效，请在水鱼个人资料页重新生成。";
+            }
+            return "暂时无法验证水鱼 Import-Token，请稍后重试。";
+        }
+        if (error instanceof IllegalStateException
+                || error instanceof IllegalArgumentException) {
+            return error.getMessage();
+        }
+        return "水鱼绑定失败，请稍后重试。";
     }
 
     private void handleMaimaiBinding(
