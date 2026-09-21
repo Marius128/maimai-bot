@@ -4,8 +4,6 @@ KokaBot 是一个基于 Spring Boot 和 OneBot 11 的舞萌 DX QQ 群机器人�
 
 它可以查询并绘制 B50、在水鱼和落雪之间切换数据源、从机台侧读取新成绩并同步到查分器，也能记录群友汇报的机厅人数。
 
-机器人管理员：迪亚（QQ：805670312）
-
 ![KokaBot 使用手册](src/main/resources/templates/help.png)
 
 ## 主要功能
