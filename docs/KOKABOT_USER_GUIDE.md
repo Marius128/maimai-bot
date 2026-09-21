@@ -92,7 +92,15 @@ KokaBot 是一个舞萌 DX QQ 群机器人，可以查询 B50、更新查分器�
 
 ## 四、绑定水鱼
 
-先登录水鱼查分器，在个人资料页面生成并复制 `Import-Token`，然后私聊机器人发送：
+私聊机器人发送：
+
+```text
+/bind fish
+```
+
+机器人会返回一个 10 分钟内有效的水鱼授权链接。打开链接、登录水鱼账号并同意授权后，无需复制授权码，直接使用 `/b50` 即可。
+
+如果还需要用 `/update` 把机台成绩同步到水鱼，则需要另外登录水鱼查分器，在个人资料页面生成并复制 `Import-Token`，然后私聊发送：
 
 ```text
 /bind fish 你的Import-Token
@@ -159,7 +167,7 @@ KokaBot 是一个舞萌 DX QQ 群机器人，可以查询 B50、更新查分器�
 
 ```text
 /source fish
-/bind fish
+/bind fish 你的Import-Token
 /bind mai
 /update
 ```

@@ -7,8 +7,10 @@ import per.kokabot.command.context.CommandContext;
 import per.kokabot.onebot.OneBotMessageSender;
 import per.kokabot.maimai.adapter.MaimaiAdapterException;
 import per.kokabot.provider.lxns.oauth.LxnsOAuthException;
+import per.kokabot.provider.divingfish.oauth.DivingFishOAuthException;
 import per.kokabot.service.LxnsOAuthBindingService;
 import per.kokabot.service.DivingFishBindingService;
+import per.kokabot.service.DivingFishOAuthService;
 import per.kokabot.service.MaimaiAccountBindingService;
 
 import java.util.Locale;
@@ -22,17 +24,20 @@ public class BindCommandHandler implements CommandHandler {
 
     private final LxnsOAuthBindingService lxnsBindingService;
     private final DivingFishBindingService divingFishBindingService;
+    private final DivingFishOAuthService divingFishOAuthService;
     private final MaimaiAccountBindingService maimaiBindingService;
     private final OneBotMessageSender messageSender;
 
     public BindCommandHandler(
             LxnsOAuthBindingService lxnsBindingService,
             DivingFishBindingService divingFishBindingService,
+            DivingFishOAuthService divingFishOAuthService,
             MaimaiAccountBindingService maimaiBindingService,
             OneBotMessageSender messageSender
     ) {
         this.lxnsBindingService = lxnsBindingService;
         this.divingFishBindingService = divingFishBindingService;
+        this.divingFishOAuthService = divingFishOAuthService;
         this.maimaiBindingService = maimaiBindingService;
         this.messageSender = messageSender;
     }
@@ -96,21 +101,11 @@ public class BindCommandHandler implements CommandHandler {
     ) {
         if (parts.length == 2
                 && "status".equals(parts[1].trim().toLowerCase(Locale.ROOT))) {
-            reply(
-                    context,
-                    divingFishBindingService.isBound(context.userId())
-                            ? "水鱼 Import-Token 已绑定，可以使用快捷更新。"
-                            : "尚未绑定水鱼，请执行 /bind fish。"
-            );
+            showDivingFishStatus(context);
             return;
         }
         if (parts.length == 1 || parts[1].isBlank()) {
-            reply(
-                    context,
-                    "请登录水鱼查分器，在个人资料页生成并复制 Import-Token，"
-                            + "然后私聊发送：\n/bind fish Import-Token\n"
-                            + "Import-Token 属于敏感凭证，请勿在群聊发送。"
-            );
+            beginDivingFishAuthorization(context);
             return;
         }
 
@@ -131,6 +126,86 @@ public class BindCommandHandler implements CommandHandler {
                     reply(context, friendlyDivingFishMessage(cause));
                     return null;
                 });
+    }
+
+    private void beginDivingFishAuthorization(CommandContext context) {
+        if (!divingFishOAuthService.isConfigured()) {
+            reply(
+                    context,
+                    "管理员尚未配置水鱼 OAuth。你仍可登录水鱼查分器，"
+                            + "在个人资料页生成 Import-Token，然后私聊发送：\n"
+                            + "/bind fish Import-Token"
+            );
+            return;
+        }
+        try {
+            DivingFishOAuthService.AuthorizationLink authorization =
+                    divingFishOAuthService.beginAuthorization(context.userId());
+            reply(
+                    context,
+                    "请在 10 分钟内打开以下链接，登录水鱼并同意授权：\n"
+                            + authorization.url()
+                            + "\n授权完成后无需复制授权码，直接发送 /b50 即可。"
+                            + "\n如需快捷更新成绩，仍需另行绑定 Import-Token。"
+            );
+        } catch (Exception error) {
+            log.warn(
+                    "创建水鱼 OAuth 授权失败: userId={}, error={}",
+                    context.userId(),
+                    error.toString()
+            );
+            reply(context, friendlyDivingFishOAuthMessage(error));
+        }
+    }
+
+    private void showDivingFishStatus(CommandContext context) {
+        boolean importTokenBound = divingFishBindingService.isBound(
+                context.userId()
+        );
+        if (!divingFishOAuthService.isConfigured()) {
+            reply(
+                    context,
+                    importTokenBound
+                            ? "水鱼 Import-Token 已绑定；管理员尚未配置水鱼 OAuth。"
+                            : "尚未绑定水鱼，且管理员尚未配置水鱼 OAuth。"
+            );
+            return;
+        }
+        divingFishOAuthService.isAuthorized(context.userId())
+                .thenCompose(oauthBound -> messageSender.reply(
+                        context,
+                        "水鱼 OAuth：" + (oauthBound ? "已授权" : "未授权")
+                                + "\n水鱼 Import-Token："
+                                + (importTokenBound ? "已绑定" : "未绑定")
+                ))
+                .exceptionally(error -> {
+                    Throwable cause = unwrap(error);
+                    log.warn(
+                            "查询水鱼 OAuth 状态失败: userId={}, error={}",
+                            context.userId(),
+                            cause.toString()
+                    );
+                    reply(context, friendlyDivingFishOAuthMessage(cause));
+                    return null;
+                });
+    }
+
+    private String friendlyDivingFishOAuthMessage(Throwable error) {
+        if (error instanceof DivingFishOAuthException oauthError) {
+            if (oauthError.consentRequired()) {
+                return "尚未授权水鱼，请重新执行 /bind fish。";
+            }
+            return switch (oauthError.statusCode()) {
+                case 401 -> "水鱼 OAuth 应用配置无效，请联系管理员。";
+                case 429 -> "水鱼 OAuth 请求过于频繁，请稍后重试。";
+                default -> "暂时无法连接水鱼 OAuth，请稍后重试。";
+            };
+        }
+        if (error instanceof IllegalStateException
+                || error instanceof IllegalArgumentException) {
+            return error.getMessage();
+        }
+        return "水鱼 OAuth 授权失败，请稍后重试。";
     }
 
     private String friendlyDivingFishMessage(Throwable error) {

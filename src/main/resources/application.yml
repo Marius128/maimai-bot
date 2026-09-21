@@ -23,6 +23,10 @@ maimai:
   provider:
     diving-fish:
       base-url: ${DIVING_FISH_BASE_URL:https://www.diving-fish.com/api/maimaidxprober}
+      oauth:
+        auth-url: ${DIVING_FISH_OAUTH_AUTH_URL:https://auth.diving-fish.com}
+        client-id: ${DIVING_FISH_OAUTH_CLIENT_ID:}
+        client-secret: ${DIVING_FISH_OAUTH_CLIENT_SECRET:}
     lxns:
       base-url: ${LXNS_BASE_URL:https://maimai.lxns.net/api/v0}
       api-key: ${LXNS_API_KEY:}

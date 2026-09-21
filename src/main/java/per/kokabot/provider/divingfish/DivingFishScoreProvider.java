@@ -5,7 +5,9 @@ import per.kokabot.maimai.model.B50Result;
 import per.kokabot.maimai.model.ScoreRecord;
 import per.kokabot.provider.MaimaiProviderType;
 import per.kokabot.provider.MaimaiScoreProvider;
+import per.kokabot.provider.divingfish.oauth.DivingFishOAuthException;
 import per.kokabot.provider.divingfish.response.DivingFishB50ResponseVO;
+import per.kokabot.service.DivingFishOAuthService;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -14,9 +16,14 @@ import java.util.concurrent.CompletableFuture;
 public class DivingFishScoreProvider implements MaimaiScoreProvider {
 
     private final DivingFishClient client;
+    private final DivingFishOAuthService oauthService;
 
-    public DivingFishScoreProvider(DivingFishClient client) {
+    public DivingFishScoreProvider(
+            DivingFishClient client,
+            DivingFishOAuthService oauthService
+    ) {
         this.client = client;
+        this.oauthService = oauthService;
     }
 
     @Override
@@ -26,8 +33,36 @@ public class DivingFishScoreProvider implements MaimaiScoreProvider {
 
     @Override
     public CompletableFuture<B50Result> queryB50(long qqId) {
+        if (oauthService.isConfigured()) {
+            return oauthService.queryB50(qqId)
+                    .handle((result, error) -> {
+                        if (error == null) {
+                            return CompletableFuture.completedFuture(result);
+                        }
+                        Throwable cause = unwrap(error);
+                        if (cause instanceof DivingFishOAuthException oauthError
+                                && oauthError.consentRequired()) {
+                            return queryPublicB50(qqId);
+                        }
+                        return CompletableFuture.<B50Result>failedFuture(cause);
+                    })
+                    .thenCompose(result -> result);
+        }
+        return queryPublicB50(qqId);
+    }
+
+    private CompletableFuture<B50Result> queryPublicB50(long qqId) {
         return client.queryB50(qqId)
                 .thenApply(this::toB50Result);
+    }
+
+    private Throwable unwrap(Throwable error) {
+        Throwable current = error;
+        while (current instanceof java.util.concurrent.CompletionException
+                && current.getCause() != null) {
+            current = current.getCause();
+        }
+        return current;
     }
 
     private B50Result toB50Result(DivingFishB50ResponseVO response) {

@@ -7,6 +7,7 @@ import per.kokabot.command.context.CommandContext;
 import per.kokabot.onebot.OneBotMessageSender;
 import per.kokabot.service.LxnsOAuthBindingService;
 import per.kokabot.service.DivingFishBindingService;
+import per.kokabot.service.DivingFishOAuthService;
 import per.kokabot.service.MaimaiAccountBindingService;
 
 import java.util.Locale;
@@ -19,17 +20,20 @@ public class UnbindCommandHandler implements CommandHandler {
 
     private final LxnsOAuthBindingService lxnsBindingService;
     private final DivingFishBindingService divingFishBindingService;
+    private final DivingFishOAuthService divingFishOAuthService;
     private final MaimaiAccountBindingService maimaiBindingService;
     private final OneBotMessageSender messageSender;
 
     public UnbindCommandHandler(
             LxnsOAuthBindingService lxnsBindingService,
             DivingFishBindingService divingFishBindingService,
+            DivingFishOAuthService divingFishOAuthService,
             MaimaiAccountBindingService maimaiBindingService,
             OneBotMessageSender messageSender
     ) {
         this.lxnsBindingService = lxnsBindingService;
         this.divingFishBindingService = divingFishBindingService;
+        this.divingFishOAuthService = divingFishOAuthService;
         this.maimaiBindingService = maimaiBindingService;
         this.messageSender = messageSender;
     }
@@ -70,10 +74,13 @@ public class UnbindCommandHandler implements CommandHandler {
                 boolean removed = divingFishBindingService.unbind(
                         context.userId()
                 );
+                divingFishOAuthService.clearCachedToken(context.userId());
                 reply(
                         context,
-                        removed ? "已删除本机器人保存的水鱼 Import-Token。"
-                                : "你还没有绑定水鱼。"
+                        (removed
+                                ? "已删除本机器人保存的水鱼 Import-Token。"
+                                : "本机器人没有保存你的水鱼 Import-Token。")
+                                + "\n如需撤销 OAuth 授权，请在水鱼账号设置中撤销 kokabot。"
                 );
                 return;
             }

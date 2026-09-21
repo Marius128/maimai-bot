@@ -11,7 +11,7 @@ KokaBot 是一个基于 Spring Boot 和 OneBot 11 的舞萌 DX QQ 群机器人�
 - 生成舞萌 DX Best 50 图片；
 - 支持水鱼和落雪两个成绩数据源；
 - 支持落雪 OAuth 授权；
-- 支持水鱼 Import-Token 加密绑定；
+- 支持水鱼 OAuth 授权查询，以及 Import-Token 加密绑定；
 - 支持舞萌玩家二维码 `SGWCMAID...` 绑定；
 - 只同步新增或提高的机台成绩，跳过重复和更差记录；
 - 群内汇报、查询光大和永利的当前人数；
@@ -33,7 +33,8 @@ KokaBot 是一个基于 Spring Boot 和 OneBot 11 的舞萌 DX QQ 群机器人�
 | `/source lxns` | 切换到落雪 |
 | `/update` | 将机台的新成绩同步到当前数据源 |
 | `/bind lxns` | 私聊绑定或重新授权落雪 |
-| `/bind fish` | 私聊查看水鱼绑定方法 |
+| `/bind fish` | 私聊获取水鱼 OAuth 授权链接 |
+| `/bind fish Import-Token` | 私聊绑定水鱼 Import-Token，用于快捷更新 |
 | `/bind mai` | 私聊查看舞萌二维码绑定方法 |
 | `/bind xxx status` | 查看对应账号的绑定状态 |
 | `/unbind xxx` | 删除对应的绑定信息 |
@@ -128,6 +129,8 @@ TOKEN_ENCRYPTION_KEY
 LXNS_API_KEY
 LXNS_OAUTH_CLIENT_ID
 LXNS_OAUTH_CLIENT_SECRET
+DIVING_FISH_OAUTH_CLIENT_ID
+DIVING_FISH_OAUTH_CLIENT_SECRET
 ```
 
 `TOKEN_ENCRYPTION_KEY` 必须是 32 字节随机数据的 Base64 字符串。PowerShell 生成方式：
@@ -194,6 +197,7 @@ mvn "-Dtest=*Test,!MaimaiBotApplicationTests" test
 
 - `.env`、`.runtime/`、本地数据和构建产物不会提交到 Git；
 - 落雪 Token、水鱼 Import-Token 和舞萌玩家标识使用 AES-256-GCM 加密后写入数据库；
+- 水鱼 OAuth 使用官方设备授权和代用户换票流程，只在内存中短暂缓存 access token，不保存用户 OAuth Token；
 - 原始舞萌二维码不会写入数据库；
 - maimai.py、MySQL 和 OneBot 端口不应直接暴露到公网；
 - 授权码、Import-Token 和 `SGWCMAID...` 只能私聊机器人；

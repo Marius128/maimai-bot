@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import per.kokabot.command.context.CommandContext;
 import per.kokabot.onebot.OneBotMessageSender;
 import per.kokabot.provider.divingfish.DivingFishApiException;
+import per.kokabot.provider.divingfish.oauth.DivingFishOAuthException;
 import per.kokabot.provider.lxns.LxnsApiException;
 import per.kokabot.provider.lxns.LxnsConfigurationException;
 import per.kokabot.service.B50ImageService;
@@ -77,13 +78,25 @@ public class B50CommandHandler implements CommandHandler {
     }
 
     private String friendlyErrorMessage(Throwable error) {
+        if (error instanceof DivingFishOAuthException oauthError) {
+            if (oauthError.consentRequired()) {
+                return "请先私聊机器人发送 /bind fish 完成水鱼授权。";
+            }
+            return switch (oauthError.statusCode()) {
+                case 401 -> "水鱼授权已失效，请重新私聊发送 /bind fish。";
+                case 403 -> "水鱼授权缺少读取成绩权限，请重新授权。";
+                case 429 -> "今日水鱼查询次数已达上限，请稍后再试。";
+                default -> "水鱼授权查询暂时不可用，请稍后重试。";
+            };
+        }
         if (error instanceof DivingFishApiException apiError) {
             return switch (apiError.statusCode()) {
                 case 400 -> "水鱼中未找到你的成绩。\n"
                         + "请先注册或登录水鱼查分器，绑定当前发指令的 QQ，"
                         + "并上传一次舞萌成绩：\n"
                         + "https://maimai.diving-fish.com/";
-                case 403 -> "该玩家禁止其他人获取成绩数据。";
+                case 403 -> "该玩家禁止公开查询成绩。请私聊机器人发送 "
+                        + "/bind fish 完成水鱼 OAuth 授权。";
                 default -> "水鱼查分服务暂时不可用，请稍后重试。";
             };
         }
