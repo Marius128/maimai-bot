@@ -12,6 +12,7 @@ public class ArcadeOccupancyReportDO {
     private ArcadeVenue venue;
     private Integer playerCount;
     private Long reporterUserId;
+    private String reporterDisplayName;
     private Timestamp reportedAt;
     private Timestamp createdAt;
     private Timestamp updatedAt;

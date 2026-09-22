@@ -1,5 +1,7 @@
 package per.kokabot.arcade;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,6 +52,52 @@ class ArcadeOccupancyMessageHandlerTest {
                 .contains("1 轮", "15 分钟");
         assertThat(ArcadeOccupancyMessageHandler.waitingMessage(5))
                 .contains("2 轮", "30 分钟");
+    }
+
+    @Test
+    void buildsVenueSpecificMessageWhenTodayHasNoReport() {
+        assertThat(ArcadeOccupancyMessageHandler.notUpdatedMessage(
+                ArcadeVenue.YONG_LI
+        )).contains("今日永利人数尚未更新", "爽霸机")
+                .doesNotContain("y5", "汇报现场人数");
+        assertThat(ArcadeOccupancyMessageHandler.notUpdatedMessage(
+                ArcadeVenue.GUANG_DA
+        )).contains("今日光大人数尚未更新", "爽霸机")
+                .doesNotContain("g5", "汇报现场人数");
+    }
+
+    @Test
+    void prefersGroupCardForReporterDisplayName() throws Exception {
+        JsonNode payload = new ObjectMapper().readTree("""
+                {
+                  "sender": {
+                    "card": "群名片",
+                    "nickname": "QQ昵称"
+                  }
+                }
+                """);
+
+        assertThat(ArcadeOccupancyMessageHandler.reporterDisplayName(
+                payload,
+                123456L
+        )).isEqualTo("群名片");
+    }
+
+    @Test
+    void fallsBackToNicknameWhenGroupCardIsEmpty() throws Exception {
+        JsonNode payload = new ObjectMapper().readTree("""
+                {
+                  "sender": {
+                    "card": "",
+                    "nickname": "QQ昵称"
+                  }
+                }
+                """);
+
+        assertThat(ArcadeOccupancyMessageHandler.reporterDisplayName(
+                payload,
+                123456L
+        )).isEqualTo("QQ昵称");
     }
 
     private void assertReport(

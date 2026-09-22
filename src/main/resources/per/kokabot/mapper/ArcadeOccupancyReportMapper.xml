@@ -8,6 +8,7 @@
                venue,
                player_count,
                reporter_user_id,
+               reporter_display_name,
                reported_at,
                created_at,
                updated_at
@@ -22,17 +23,20 @@
             venue,
             player_count,
             reporter_user_id,
+            reporter_display_name,
             reported_at
         ) values (
             #{groupId},
             #{venue},
             #{playerCount},
             #{reporterUserId},
+            #{reporterDisplayName},
             #{reportedAt}
         )
         on duplicate key update
             player_count = values(player_count),
             reporter_user_id = values(reporter_user_id),
+            reporter_display_name = values(reporter_display_name),
             reported_at = values(reported_at),
             updated_at = current_timestamp
     </insert>

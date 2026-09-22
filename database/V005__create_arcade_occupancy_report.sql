@@ -3,6 +3,7 @@ create table if not exists arcade_occupancy_report (
     venue varchar(32) not null,
     player_count int not null,
     reporter_user_id bigint not null,
+    reporter_display_name varchar(128) not null default '',
     reported_at timestamp not null,
     created_at timestamp not null default current_timestamp,
     updated_at timestamp not null default current_timestamp on update current_timestamp,

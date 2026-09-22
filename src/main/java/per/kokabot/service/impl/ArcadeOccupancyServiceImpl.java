@@ -8,9 +8,13 @@ import per.kokabot.service.ArcadeOccupancyService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 
 @Service
 public class ArcadeOccupancyServiceImpl implements ArcadeOccupancyService {
+
+    private static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Shanghai");
 
     private final ArcadeOccupancyReportMapper reportMapper;
 
@@ -26,6 +30,7 @@ public class ArcadeOccupancyServiceImpl implements ArcadeOccupancyService {
             ArcadeVenue venue,
             int playerCount,
             long reporterUserId,
+            String reporterDisplayName,
             Instant reportedAt
     ) {
         if (groupId <= 0 || reporterUserId <= 0) {
@@ -40,6 +45,7 @@ public class ArcadeOccupancyServiceImpl implements ArcadeOccupancyService {
         report.setVenue(venue);
         report.setPlayerCount(playerCount);
         report.setReporterUserId(reporterUserId);
+        report.setReporterDisplayName(reporterDisplayName);
         report.setReportedAt(Timestamp.from(
                 reportedAt == null ? Instant.now() : reportedAt
         ));
@@ -49,14 +55,29 @@ public class ArcadeOccupancyServiceImpl implements ArcadeOccupancyService {
     @Override
     public OccupancyReport find(long groupId, ArcadeVenue venue) {
         ArcadeOccupancyReportDO report = reportMapper.select(groupId, venue);
-        if (report == null) {
+        if (report == null || !isToday(report.getReportedAt().toInstant())) {
             return null;
         }
         return new OccupancyReport(
                 report.getVenue(),
                 report.getPlayerCount(),
                 report.getReporterUserId(),
+                displayName(report),
                 report.getReportedAt().toInstant()
         );
+    }
+
+    private String displayName(ArcadeOccupancyReportDO report) {
+        String displayName = report.getReporterDisplayName();
+        if (displayName == null || displayName.isBlank()) {
+            return String.valueOf(report.getReporterUserId());
+        }
+        return displayName;
+    }
+
+    static boolean isToday(Instant reportedAt) {
+        LocalDate reportDate = reportedAt.atZone(BUSINESS_ZONE).toLocalDate();
+        LocalDate today = LocalDate.now(BUSINESS_ZONE);
+        return reportDate.equals(today);
     }
 }

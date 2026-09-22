@@ -11,6 +11,7 @@ public interface ArcadeOccupancyService {
             ArcadeVenue venue,
             int playerCount,
             long reporterUserId,
+            String reporterDisplayName,
             Instant reportedAt
     );
 
@@ -20,6 +21,7 @@ public interface ArcadeOccupancyService {
             ArcadeVenue venue,
             int playerCount,
             long reporterUserId,
+            String reporterDisplayName,
             Instant reportedAt
     ) {
     }

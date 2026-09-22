@@ -104,6 +104,7 @@ public class ArcadeOccupancyMessageHandler {
                 parsed.venue(),
                 parsed.playerCount(),
                 userId,
+                reporterDisplayName(payload, userId),
                 reportedAt
         );
         String message = "📍 " + parsed.venue().displayName()
@@ -123,29 +124,42 @@ public class ArcadeOccupancyMessageHandler {
         if (report == null) {
             messageSender.sendGroupText(
                     groupId,
-                    "暂无" + venue.displayName() + "人数汇报。\n"
-                            + "可以发送 " + venue.shortCode()
-                            + "5 这样的消息进行汇报。"
+                    notUpdatedMessage(venue)
             ).exceptionally(error -> null);
             return;
         }
 
-        String prefix = "📍 " + venue.displayName() + "当前人数："
+        String message = "📍 " + venue.displayName() + "当前人数："
                 + report.playerCount() + " 人\n"
                 + "🕹️ 机台数量：1 台（每轮 2 人）\n"
                 + waitingMessage(report.playerCount())
-                + "\n📣 汇报人：";
-        String suffix = "\n🕒 汇报时间："
+                + "\n📣 汇报人：" + report.reporterDisplayName()
+                + "\n🕒 汇报时间："
                 + TIME_FORMATTER.format(report.reportedAt());
-        messageSender.sendGroupWithMention(
-                groupId,
-                prefix,
-                report.reporterUserId(),
-                suffix
-        ).exceptionally(error -> {
+        messageSender.sendGroupText(groupId, message).exceptionally(error -> {
             log.warn("回复机厅人数查询失败", error);
             return null;
         });
+    }
+
+    static String notUpdatedMessage(ArcadeVenue venue) {
+        return "📍 今日" + venue.displayName() + "人数尚未更新\n"
+                + "🎮 你可以爽霸机了，快去出勤吧！✨";
+    }
+
+    static String reporterDisplayName(JsonNode payload, long userId) {
+        JsonNode sender = payload.path("sender");
+        String displayName = sender.path("card").asText("").strip();
+        if (displayName.isEmpty()) {
+            displayName = sender.path("nickname").asText("").strip();
+        }
+        if (displayName.isEmpty()) {
+            return String.valueOf(userId);
+        }
+        displayName = displayName.replaceAll("\\s+", " ");
+        return displayName.length() > 64
+                ? displayName.substring(0, 64)
+                : displayName;
     }
 
     static ParsedMessage parse(String rawText) {
