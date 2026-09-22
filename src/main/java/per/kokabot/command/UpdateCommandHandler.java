@@ -16,18 +16,24 @@ import java.util.concurrent.CompletionException;
 @Component
 public class UpdateCommandHandler implements CommandHandler {
 
+    private static final String TASK_NAME = "update";
+    private static final String PROCESSING_MESSAGE =
+            "成绩正在更新中，请不要重复发送。";
     private static final Logger log =
             LoggerFactory.getLogger(UpdateCommandHandler.class);
 
     private final MaimaiQuickSyncService syncService;
     private final OneBotMessageSender messageSender;
+    private final UserTaskRegistry taskRegistry;
 
     public UpdateCommandHandler(
             MaimaiQuickSyncService syncService,
-            OneBotMessageSender messageSender
+            OneBotMessageSender messageSender,
+            UserTaskRegistry taskRegistry
     ) {
         this.syncService = syncService;
         this.messageSender = messageSender;
+        this.taskRegistry = taskRegistry;
     }
 
     @Override
@@ -42,7 +48,17 @@ public class UpdateCommandHandler implements CommandHandler {
                     .exceptionally(error -> null);
             return;
         }
-        messageSender.reply(context, "正在读取机台成绩并同步到当前数据源……")
+        if (!taskRegistry.tryStart(context.userId(), TASK_NAME)) {
+            messageSender.reply(context, PROCESSING_MESSAGE)
+                    .exceptionally(error -> null);
+            return;
+        }
+
+        messageSender.reply(context, PROCESSING_MESSAGE)
+                .exceptionally(error -> {
+                    log.warn("回复成绩更新处理中消息失败", error);
+                    return null;
+                })
                 .thenCompose(ignored -> syncService.sync(context.userId()))
                 .handle((result, error) -> {
                     if (error == null) {
@@ -67,7 +83,9 @@ public class UpdateCommandHandler implements CommandHandler {
                 .exceptionally(error -> {
                     log.warn("回复快捷更新消息失败", error);
                     return null;
-                });
+                })
+                .whenComplete((ignored, error) ->
+                        taskRegistry.finish(context.userId(), TASK_NAME));
     }
 
     private String friendlyTargetError(String name, Throwable error) {

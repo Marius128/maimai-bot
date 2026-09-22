@@ -25,21 +25,27 @@ import java.util.concurrent.CompletionException;
 @Component
 public class B50CommandHandler implements CommandHandler {
 
+    private static final String TASK_NAME = "b50";
+    private static final String PROCESSING_MESSAGE =
+            "B50 正在生成中，请不要重复发送。";
     private static final Logger log =
             LoggerFactory.getLogger(B50CommandHandler.class);
 
     private final OneBotMessageSender messageSender;
     private final MaimaiScoreService scoreService;
     private final B50ImageService imageService;
+    private final UserTaskRegistry taskRegistry;
 
     public B50CommandHandler(
             OneBotMessageSender messageSender,
             MaimaiScoreService scoreService,
-            B50ImageService imageService
+            B50ImageService imageService,
+            UserTaskRegistry taskRegistry
     ) {
         this.messageSender = messageSender;
         this.scoreService = scoreService;
         this.imageService = imageService;
+        this.taskRegistry = taskRegistry;
     }
 
     @Override
@@ -49,7 +55,18 @@ public class B50CommandHandler implements CommandHandler {
 
     @Override
     public void handle(CommandContext context) {
-        scoreService.queryB50(context.userId())
+        if (!taskRegistry.tryStart(context.userId(), TASK_NAME)) {
+            messageSender.reply(context, PROCESSING_MESSAGE)
+                    .exceptionally(error -> null);
+            return;
+        }
+
+        messageSender.reply(context, PROCESSING_MESSAGE)
+                .exceptionally(error -> {
+                    log.warn("回复 B50 处理中消息失败", error);
+                    return null;
+                })
+                .thenCompose(ignored -> scoreService.queryB50(context.userId()))
                 .thenCompose(imageService::render)
                 .handle((imageData, error) -> {
                     if (error != null) {
@@ -74,7 +91,9 @@ public class B50CommandHandler implements CommandHandler {
                 .exceptionally(error -> {
                     log.warn("回复 B50 消息失败", error);
                     return null;
-                });
+                })
+                .whenComplete((ignored, error) ->
+                        taskRegistry.finish(context.userId(), TASK_NAME));
     }
 
     private String friendlyErrorMessage(Throwable error) {
