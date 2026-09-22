@@ -35,13 +35,13 @@ public class OneBotClient implements WebSocket.Listener {
 
     private static final Logger log = LoggerFactory.getLogger(OneBotClient.class);
     private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(5);
-    private static final Duration ACTION_TIMEOUT = Duration.ofSeconds(15);
     private static final long RECONNECT_DELAY_SECONDS = 5;
 
     private final ObjectMapper objectMapper;
     private final ApplicationEventPublisher eventPublisher;
     private final URI websocketUri;
     private final String accessToken;
+    private final Duration actionTimeout;
     private final ScheduledExecutorService scheduler;
     private final ConcurrentHashMap<String, CompletableFuture<JsonNode>> pendingActions =
             new ConcurrentHashMap<>();
@@ -57,12 +57,14 @@ public class OneBotClient implements WebSocket.Listener {
             ObjectMapper objectMapper,
             ApplicationEventPublisher eventPublisher,
             @Value("${onebot.websocket-url}") String websocketUrl,
-            @Value("${onebot.access-token:}") String accessToken
+            @Value("${onebot.access-token:}") String accessToken,
+            @Value("${onebot.action-timeout:60s}") Duration actionTimeout
     ) {
         this.objectMapper = objectMapper;
         this.eventPublisher = eventPublisher;
         this.websocketUri = URI.create(websocketUrl);
         this.accessToken = accessToken.trim();
+        this.actionTimeout = actionTimeout;
         this.scheduler = Executors.newSingleThreadScheduledExecutor(runnable -> {
             Thread thread = new Thread(runnable, "onebot-scheduler");
             thread.setDaemon(true);
@@ -121,7 +123,7 @@ public class OneBotClient implements WebSocket.Listener {
                         new TimeoutException("OneBot action 超时: " + action)
                 );
             }
-        }, ACTION_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
+        }, actionTimeout.toMillis(), TimeUnit.MILLISECONDS);
 
         current.sendText(payload, true).whenComplete((ignored, error) -> {
             if (error != null) {
